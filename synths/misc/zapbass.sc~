@@ -1,0 +1,39 @@
+SynthDef(\zap, {arg note, gate;
+
+var out, carrier, voices;
+
+voices = 10;
+
+note = note + LFNoise2.ar(0.4, 1/12);
+
+out = Mix ({ VarSaw.ar(note.midicps + LFNoise2.ar(0.1,1/8), width: Line.ar(0.3, 0.8, 3) + LFNoise2.ar(0.5, 0.1)) * 1/voices }!voices) * 0.4;
+
+out = out * EnvGen.kr(Env.asr(0.01, 1, 1), gate, 1, doneAction: 2) * AmpComp.kr(note.midicps, 20.midicps) * 0.5;
+
+Out.ar(0, out.dup);
+
+}).send(s);
+
+
+Synth(\zap, [\note, 40, \gate, 1])
+
+(
+var noteDict = Dictionary.new;
+NoteOnResponder.removeAll;
+NoteOffResponder.removeAll;
+
+NoteOnResponder
+({|src, chan, note, vel|
+
+
+noteDict.put(note, Synth(\zap, [\note, note, \gate, 1]));
+});
+
+NoteOffResponder
+({|src, chan, note, vel|
+
+
+noteDict.at(note).set(\gate, 0);
+noteDict.removeAt(\note);
+});
+)

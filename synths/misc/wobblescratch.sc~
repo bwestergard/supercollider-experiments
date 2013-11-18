@@ -1,0 +1,12 @@
+{
+	var pulse = Impulse.ar(1);
+	var notes = Dseq([30, 37, 33, 42, 30, 37, 33, 39], inf) + 4;
+	var wobble = Drand([2, 4, 3, 6, 0.5, 0.3], inf);
+	var foo = BMoog.ar(
+		LFTri.ar(Lag.ar(Demand.ar(pulse, 0, notes),0.05).midicps) * 0.8,
+		LFTri.ar(Demand.ar(pulse, 0, wobble)).abs * 1000 + 200, // cutoff freq.
+		0.6, // q
+		0, // mode - lowpass
+		0.35); // mul
+[foo,foo]
+}.play

@@ -1,0 +1,13 @@
+{
+var pulse, out, tone, gate, freq, notes, note, octaves, feedback;
+freq = 2;
+gate = Impulse.kr(freq);
+notes = Drand([0, 5, 10, 3], inf);
+octaves = Drand([1, 2, 3], inf);
+note = Demand.kr(gate, 0, notes) + 40 + LFNoise2.ar(1/12, 1/8) + (Demand.kr(gate, 0, octaves) * 12) + MouseX.kr(0,20).round(5);
+tone = VarSaw.ar(note.midicps, 0, LFNoise2.ar(12).range(0,1));
+out = tone * Linen.kr(gate, 0.01, 1, 0.1, doneAction: 0);
+out = out + LocalIn.ar;
+LocalOut.ar(DelayC.ar(out,2*freq,(3/16)*(freq)) * 0.95);
+out.dup * 0.3;
+}.play;

@@ -1,0 +1,77 @@
+s.boot;
+
+(
+
+x = SynthDef(\basskeys, {arg note, gate;
+
+var freq = note.midicps;
+var tiny = 1/1000000;
+var wobble;
+var a,b,c;
+var d,e,f;
+var out;
+var fade;
+wobble = SinOsc.ar(MouseX.kr(tiny,10), phase: 1).range(0,1);
+fade = 1;
+a = SinOsc.ar(freq) * wobble;
+b = SinOsc.ar(freq, phase: a) * 2 * wobble;
+c = SinOsc.ar(freq, phase: b * fade);
+
+d = SinOsc.ar(freq*2) * wobble;
+d = (d * wobble.range(0,8)).tanh;
+e = SinOsc.ar(freq*2, phase: d) * 2 * wobble;
+g = SinOsc.ar(freq*7) * XLine.ar(0.1,tiny,3);
+g = g + (SinOsc.ar(freq*3) * XLine.ar(0.05,tiny,3));
+f = SinOsc.ar(freq*2, phase: (e + g) * fade) * 3;
+
+out = (e + f) * EnvGen.kr(Env.asr(0.01, 1, 0.04), gate, 1, doneAction: 2);
+
+Out.ar(0, out.dup * 0.06 * AmpComp.kr(note.midicps, 20.midicps));
+
+}).store;
+
+)
+
+(
+
+var notes, on, off;
+MIDIIn.connect;
+notes = Array.newClear(128);  // array has one slot per possible MIDI note
+
+on = Routine({
+
+var event, newNode;
+
+loop {
+
+event = MIDIIn.waitNoteOn;
+
+newNode = Synth(\filtpulse);
+newNode.set(\note, event.b);
+newNode.set(\gate, 1);
+notes.put(event.b, newNode);
+
+}
+
+}).play;
+
+
+off = Routine({
+
+var event;
+
+loop {
+
+event = MIDIIn.waitNoteOff;
+
+notes[event.b].set(\gate, 0);
+
+}
+
+}).play;
+
+q = { on.stop; off.stop; };
+
+)
+
+q.value;

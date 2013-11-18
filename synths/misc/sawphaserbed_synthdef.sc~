@@ -1,0 +1,78 @@
+Server.local.options.memSize = 20*8192;
+
+SynthDef("sawphaserlush", { arg root = 60; 
+
+	var glide_root;
+	var input_l,dsig_l, mixed_l;
+	var input_r,dsig_r, mixed_r;
+	var phase_control_l;
+	var phase_control_r;
+
+	glide_root = XLine.kr(root + Rand(-3,3),root,10) + LFNoise2.kr(1, 1/12);
+
+	input_l = Saw.ar(glide_root.midicps,0.1) + Saw.ar((glide_root + 7).midicps,0.05) + Saw.ar((glide_root - 7).midicps,0.05);
+	phase_control_l = SinOsc.ar(LFNoise2.kr(4, 0.2, 0.3),0,0.005,0.08);
+	dsig_l = AllpassL.ar(input_l, 4, phase_control_l, 0);
+	mixed_l = input_l + (dsig_l * 0.6);
+	mixed_l = LPF.ar(mixed_l, 12000);
+
+	input_r = Saw.ar(glide_root.midicps,0.1) + Saw.ar((glide_root + 7).midicps,0.05) + Saw.ar((glide_root - 7).midicps,0.05);
+	phase_control_r = SinOsc.ar(LFNoise2.kr(4, 0.2, 0.3),0,0.005,0.08);
+	dsig_r = AllpassL.ar(input_r, 4, phase_control_r, 0);
+	mixed_r = input_r + (dsig_r * 0.6);
+	mixed_r = LPF.ar(mixed_r, 12000);
+
+	Out.ar(0, mixed_l * Line.ar(0,0.7,0.1));
+	Out.ar(1, mixed_r * Line.ar(0,0.7,0.1));
+
+}).send(s);
+
+x = Synth("sawphaserlush");
+
+x.set(\root, "30");
+
+//set the action:
+
+MIDIIn.connect;
+
+MIDIIn.noteOn = {arg src, chan, num, vel;
+
+s.sendMsg("/s_new", "sawphaserlush", y = s.nextNodeID, 1, 1, "root", num);
+[chan,num,vel / 127].postln;
+
+};
+
+s.sendMsg("/n_free", y);
+
+MIDIIn.noteOff = { arg src,chan,num,vel;
+
+s.sendMsg("/n_free", y);
+
+};
+
+
+Synth("sawphaserlush", ["root", 54 - 12]);
+Synth("sawphaserlush", ["root", 57 - 12]);
+
+Synth("sawphaserlush", ["root", 50]);
+Synth("sawphaserlush", ["root", 54]);
+Synth("sawphaserlush", ["root", 57]);
+
+Synth("sawphaserlush", ["root", 50 + 12]);
+Synth("sawphaserlush", ["root", 54 + 12]);
+Synth("sawphaserlush", ["root", 57 + 12]);
+//
+
+Synth("sawphaserlush", ["root", 50 + 12]);
+Synth("sawphaserlush", ["root", 53 + 12]);
+
+Synth("sawphaserlush", ["root", 55 + 12]);
+Synth("sawphaserlush", ["root", 57 + 12]);
+
+Synth("sawphaserlush", ["root", 60 + 12]);
+
+Synth("sawphaserlush", ["root", 50]);
+Synth("sawphaserlush", ["root", 53]);
+Synth("sawphaserlush", ["root", 55]);
+Synth("sawphaserlush", ["root", 60]);
+

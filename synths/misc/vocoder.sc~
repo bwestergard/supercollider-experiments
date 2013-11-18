@@ -1,0 +1,22 @@
+
+(
+var makeVocoderDef = { |numbands = 20, inChannels = 1, lowBand = 100, hiBand = 10000|
+SynthDef(\vocoder, { |inbus, vocbus, rq = 0.07, amp = 1|
+var sig, centerFreqs, splitFilt, bandamps;
+var sig2, inSplit;
+// analysis phase
+sig = In.ar(vocbus, 1);
+centerFreqs = Array.geom(numbands, lowBand, (hiBand / lowBand) ** (numbands-1).reciprocal);
+splitFilt = BPF.ar(sig, centerFreqs, rq);
+bandamps = Amplitude.ar(splitFilt);
+
+
+// resynthesis phase
+sig2 = In.ar(inbus, inChannels);
+inSplit = sig2.asArray.collect({ |channel| BPF.ar(channel, centerFreqs, rq, bandamps) });
+Mix.ar(inSplit.flop) * amp
+});
+};
+
+makeVocoderDef.value.send(s);
+)

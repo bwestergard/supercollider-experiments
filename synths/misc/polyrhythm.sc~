@@ -1,0 +1,62 @@
+SynthDef(\zap, {arg note, vol, period;
+
+var out, carrier, voices, width;
+
+note = note - 10 + 12;
+
+out = VarSaw.ar(note.midicps, 0, Line.ar(1,0,period)) + VarSaw.ar(note.midicps, 0, Line.ar(1,0,period * 2));
+out = out / 3;
+out = out * Line.ar(1,0,period, doneAction: 2) * Line.ar(0,1,0.02) * AmpComp.kr(note.midicps, (70-24).midicps) * 0.5 * XFade2.ar(Silence.ar, out, (vol * 2) - 1);
+
+out = BLowPass.ar(out, Line.ar(note.midicps * 2, note.midicps * 4, 0.05), Line.ar(0.4, 1, 0.1)) * 1.5;
+
+width = 1;
+
+Out.ar(0, Pan2.ar(out, Rand(-1 * width,width)));
+
+}).send(s);
+
+r = Routine {
+	var count,note,cycle,period,new_period,a,b,new_a,new_b,a_note,b_note,c_note;
+	period = 2/3;
+	cycle = 128;
+	count = 0;
+	a = 1;
+	b = 1;
+	a_note = 60;
+	b_note = 60+4;
+	period.postln;
+	inf.do {
+		if ((count % a) == 0, {
+     			Synth(\zap, [\note, a_note, \vol, 1 - (count / (a*b*cycle)), \period, a * period]); // Initially this "stream" of pulses is at full volume
+			// Period of this stream is (a * period)
+		},{});
+		if ((count % b) == 0, {
+     			Synth(\zap, [\note, b_note, \vol, count / (a*b*cycle), \period, b * period]); // Starts silent, fades to full
+			// Period of this stream is (b * period)
+		},{}); 
+		period.wait;
+		count = count + 1;
+		if (count == ((a*b*cycle)), {
+     			count = 0; // reset count
+			if (period <= 0.05,
+			{new_a = 1; new_b = 4; "going down, getting too fast".postln; },
+			{ if (2.rand == 0, {new_a = 3; new_b = 4; "going down".postln; }, {new_a = 2; new_b = 1; "going up".postln; }); });
+			if ((b * period) >= (1/2), { new_a = 3; new_b = 1; "too slow, speeding up!".postln; } );
+			new_period = (b * period) / new_a; // calculate new period to ensure it matches old
+
+			period = new_period;
+			a = new_a;
+			b = new_b;
+
+			period.postln; // report new period
+
+			c_note = a_note; // switch a and b notes
+			a_note = b_note;
+			b_note = c_note;
+		},{});
+	}
+};
+
+r.play;
+r.stop;

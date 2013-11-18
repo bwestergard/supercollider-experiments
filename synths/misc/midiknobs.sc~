@@ -1,0 +1,33 @@
+(
+
+var y;
+
+b = Bus.control(s);
+q = Bus.control(s);
+
+MIDIIn.noteOn = { arg src, chan, num, vel; [chan,num,vel].postln; x = Synth(\snare, [\note, num, \amp, 1, \mod, 0]); x.map(2,b.index); y = Synth(\snare, [\note, num+12, \amp, 1, \mod, 0]); y.map(2,b.index); };
+
+MIDIIn.control = { arg src, chan, num, val; [chan,num,val].postln;
+"control".postln;
+if(num == 7, {b.value = val;"7".postln;}, {q.value = val;});
+}
+)
+
+(
+
+x = SynthDef(\snare, {arg note, amp, mod;
+var tone,amount;
+note = note+12;
+
+amount = LinLin.kr(mod,0,127,0,2);
+mod = (SinOsc.ar(note.midicps*2) * Slew.kr(amount,80,80)) + LocalIn.ar;
+tone = SinOsc.ar(note.midicps/2, phase: mod) * XLine.ar(1, 1/1000, 0.8, doneAction: 2) * 0.3 * amp;
+LocalOut.ar(tone*amount);
+
+Out.ar(0, tone.dup);
+
+}).store;
+
+)
+
+Synth(\snare, [\freq, 800, \amp, 1]);

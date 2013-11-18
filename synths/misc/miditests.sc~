@@ -1,0 +1,56 @@
+Server.local.options.memSize = 50*8192;
+
+SynthDef("simple", { arg note=50,gate=1;
+
+var out;
+
+note = note + Line.kr(0.1,0,0.1);
+
+out = SinOsc.ar(note.midicps) * 0.3;
+
+out = out * EnvGen.kr(Env.adsr, gate, 1, doneAction: 2);
+
+Out.ar(0, out);
+Out.ar(1, out);
+
+}).send(s);
+
+//
+
+(
+var notes, on, off;
+MIDIIn.connect;
+notes = Array.newClear(128);  // array has one slot per possible MIDI note
+
+on = Routine({
+
+var event, newNode;
+
+loop {
+
+event = MIDIIn.waitNoteOn;
+
+newNode = Synth("simple");
+newNode.set(\note, event.b);
+notes.put(event.b, newNode);
+
+}
+
+}).play;
+
+
+off = Routine({
+
+var event;
+
+loop {
+
+event = MIDIIn.waitNoteOff;
+
+notes[event.b].set(\gate, 0);
+
+}
+
+}).play;
+
+)

@@ -1,0 +1,32 @@
+s = Server.local;
+s.sendMsg("/b_allocRead", 0, "/home/bjorn/audio_work/samples/j5.wav");
+
+{
+var index,out,notes,freq,pos,seq,pulse,start_frame,stutter;
+freq = 16 / BufDur.kr(0);
+seq = Dseq([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], inf);
+pulse = Impulse.kr(freq);
+pos = Demand.kr(pulse,0,seq);
+start_frame = (pos * BufFrames.kr(0)) / 16;
+stutter = MouseY.kr(0,4);
+index = Phasor.ar(pulse, BufRateScale.kr(0) * MouseX.kr(-1,1), start_frame, start_frame + (BufFrames.kr(0) / (8 * (stutter ** 2))), start_frame);
+out = BufRd.ar(1, 0, index) * 0.5;
+[out,out]
+}.play;
+
+
+{
+var index,out,notes,freq,pos,seq,pulse,start_frame,stutter,seq2,seq3,fb,new;
+freq = 16 / BufDur.kr(0);
+seq = Dseq([0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15], inf);
+seq2 = Drand([1,1/2,3/2,-1], inf);
+seq3 = Drand([1/3,-1/3,1/4,-1/4,0, -1, 1], inf);
+pulse = Impulse.kr(freq);
+pos = Demand.kr(pulse,0,seq);
+start_frame = (pos * BufFrames.kr(0)) / 16;
+stutter = MouseY.kr(0,6);
+index = Phasor.ar(pulse, BufRateScale.kr(0) * Demand.kr(pulse,0,seq2), start_frame, start_frame + (BufFrames.kr(0) / (8 * (stutter ** 2))), start_frame);
+out = BufRd.ar(1, 0, index) * 0.5;
+Out.ar([0,1],out);
+}.play;
+

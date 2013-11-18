@@ -1,0 +1,10 @@
+{
+var tone,note,num;
+num = 30;
+note = 49+12;
+tone = Silence.ar;
+num.do({
+tone = tone + VarSaw.ar((note.midicps + LFNoise2.ar(1/3, 1/12)) * Rand(1,4).round(1), 0, LinLin.ar(LFNoise2.ar(1/2), -1, 1, 0.15, 0.5));
+});
+tone.dup * (1/num) * 0.3;
+}.play;
